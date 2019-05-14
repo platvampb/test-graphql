@@ -15,55 +15,84 @@ const getObjectData = (entity, options) => {
   })
 }
 
-let tabs = [
+const tabs = [
   {
     id: '2',
     caption: 'My Tasks',
     index: 1,
+    viewId: '4',
   },
   {
     id: '3',
     caption: "My Staff's Tasks",
     index: 2,
+    viewId: '5',
   },
 ]
 
-let views = [
+const views = [
   {
     id: '4',
-    source: '...',
+    content: 'test',
+    dataId: '6',
+  },
+  {
+    id: '5',
+    content: 'test2',
+    dataId: '7',
   },
 ]
 
-let myTasksModule = {
+const myTasksModule = {
   id: '1',
   urlCaption: 'MyTasks',
   caption: 'My Tasks',
   tabs: tabs,
-  view: views[0],
 }
+
+const data = [
+  {
+    id: '6',
+    rows: ['location1', 'description1', 'type1', 'stage1', 'due date1', 'status1'],
+  },
+  {
+    id: '7',
+    rows: ['location2', 'description2', 'type2', 'stage2', 'due date2', 'status2'],
+  }
+]
+
+const getData = (id) => new Promise(function (resolve, reject) {
+  setTimeout(function () {
+    resolve(data.find((d) => d.id === id))
+  }, 3000)
+});
+/*
+const getData = () => {
+  console.log('test4')
+  return data;
+}*/
 
 const resolvers = {
   Query: {
     Application: (a, { urlCaption }) => {
-      console.log(a)
-      return getObjectData('SysModuleEntity', {
-        $filter: `UrlCaption eq '${urlCaption}'`,
-      })
-        .then(res => res.json())
-        .then(json => json.value[0])
-        .then(rec => {
-          return {
-            id: rec.Id,
-            caption: rec.Caption,
-            urlCaption: rec.UrlCaption,
-            tabs: [],
-            view: views[0],
-          }
-        })
+      return myTasksModule
+    },
+    Data: (a, { id }) => {
+      return getData(id)
     },
   },
-  Tab: () => undefined,
+  Module: {
+    tabs: () => tabs,
+  },
+  Tab: {
+    view: t => views.find((v) => v.id === t.viewId)
+  },
+  View: {
+    data: v => getData(v.dataId)
+  },
+  ObjectData: {
+    rows: d => d.rows
+  }
 }
 
 const server = new GraphQLServer({
